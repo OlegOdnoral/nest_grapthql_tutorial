@@ -1,74 +1,62 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Task, TaskStatus } from './models/task.model';
+import { TaskStatus } from './models/task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
 import { UpdateStatus } from './dto/update-status.dto';
 import { GetTasksFilter } from './dto/get-tasks-filter.dto';
+import { TaskRepository } from './task.repository';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Task } from './entities/task.entity';
 
 @Injectable()
 export class TasksService {
-    private tasks: Array<Task> = [];
 
-    getAllTasks(): Array<Task> {
-        return this.tasks;
+    constructor(
+        @InjectRepository(TaskRepository)
+        private taskRepository: TaskRepository
+    ) { }
+
+    async getAllTasks(filterDto: GetTasksFilter): Promise<Array<Task>> {
+        return await this.taskRepository.getTasks(filterDto);
     }
 
-    getTasksWithFilter(filterDto: GetTasksFilter): Array<Task> {
-        const {status, search} = filterDto;
-        let tasks = this.getAllTasks();
-        if(status) {
-            tasks = tasks.filter((item: Task) => item.status === status);
+    // getTasksWithFilter(filterDto: GetTasksFilter): Array<Task> {
+    //     const {status, search} = filterDto;
+    //     let tasks = this.getAllTasks();
+    //     if(status) {
+    //         tasks = tasks.filter((item: Task) => item.status === status);
+    //     }
+
+    //     if(search) {
+    //         tasks = tasks.filter((item: Task) => 
+    //             item.title.includes(search) || item.description.includes(search)
+    //         )
+    //     }
+
+    //     return tasks;
+    // }
+
+    async getTaskById(id: number): Promise<Task> {
+        const found = await this.taskRepository.findOne(id)
+        if (!found) {
+            throw new NotFoundException(`Task with ID = ${id} not found!`);
         }
-
-        if(search) {
-            tasks = tasks.filter((item: Task) => 
-                item.title.includes(search) || item.description.includes(search)
-            )
-        }
-
-        return tasks;
+        return found
     }
 
-    getTaskById(taskId: string): Task {
-        const find = this.tasks.find((item: Task) => item.id === taskId);
-        if(!find) {
-            throw new NotFoundException(`Task with ID = ${taskId} not found!`);
-        }
-        return find
+    async createTask(createTaskDto: CreateTaskDto): Promise<Task> {
+        return this.taskRepository.createTask(createTaskDto);
     }
 
-    addNewTask(createTaskDto: CreateTaskDto): Array<Task> {
-        const taskForAdd = this.createTask(createTaskDto);
-        this.tasks.push(taskForAdd);
-        return this.tasks;
+    async deleteTaskById(id: number): Promise<{result: boolean}> {
+        const queryResult = await this.taskRepository.delete(id);
+        return { result: !!queryResult.affected };
     }
 
-    private createTask(createTaskDto: CreateTaskDto): Task {
-        const { title, description } = createTaskDto;
-        return {
-            id: (this.tasks.length+1).toString(),
-            status: TaskStatus.OPEN,
-            title,
-            description,
-        }
-    } 
-
-    deleteTaskById(taskId: string): boolean {
-        const found = this.getTaskById(taskId);
-        const itemIndex = this.tasks.findIndex((item: Task) => item.id === found.id);
-        if(itemIndex < 0) return false;
-        this.tasks.splice(itemIndex, 1);
-        return true;
-    }
-
-    updateTaskStatus(updateStatus: UpdateStatus): boolean {
-        const result = this.tasks.find((item: Task, index: number) => {
-            if(item.id = updateStatus.id) {
-                this.tasks[index].status = updateStatus.status;
-                return item;
-            }
-            return undefined;
-        });
-        return result ? true : false;
+    async updateTaskStatus(updateStatus: UpdateStatus): Promise<{result: boolean}> {
+        const {id, status} = updateStatus;
+        const queryResult = await this.taskRepository.update(id, {status});
+        return { result: !!queryResult.affected };
+         
     }
 
 }
