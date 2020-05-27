@@ -1,4 +1,17 @@
-import { Controller, Get, Post, Body, Param, Delete, Patch, Query, UsePipes, ValidationPipe, ParseIntPipe, UseGuards } from '@nestjs/common';
+import { 
+    Controller, 
+    Get, 
+    Post, 
+    Body, 
+    Param, 
+    Delete, 
+    Patch, 
+    Query, 
+    UsePipes, 
+    ValidationPipe, 
+    ParseIntPipe, 
+    UseGuards, 
+    } from '@nestjs/common';
 import { TasksService } from './tasks.service';
 import { TaskStatus } from './models/task-status.enum';
 import { CreateTaskDto } from './dto/create-task.dto';
@@ -13,6 +26,7 @@ import { GetUser } from 'src/auth/decorators/get-user.decorator';
 @Controller('tasks')
 @UseGuards(AuthGuard())
 export class TasksController {
+
     constructor(private tasksService: TasksService) {}
 
     @Get()
@@ -20,16 +34,16 @@ export class TasksController {
         @Query(ValidationPipe) filterDto: GetTasksFilter,
         @GetUser() user: User
         ): Promise<Array<Task>> {
-        return this.tasksService.getAllTasks(filterDto, user);
-    }
+            return this.tasksService.getAllTasks(filterDto, user);
+        }
 
     @Get('/:id')
     getTaskById(
         @Param('id', ParseIntPipe) taskId: number,
         @GetUser() user: User
         ): Promise<Task> {
-        return this.tasksService.getTaskById(taskId, user);
-    }
+            return this.tasksService.getTaskById(taskId, user);
+        }
 
     @Post()
     @UsePipes(ValidationPipe)
@@ -37,16 +51,16 @@ export class TasksController {
         @Body() createTaskDto: CreateTaskDto,
         @GetUser() user: User,
         ): Promise<Task> {
-        return this.tasksService.createTask(createTaskDto, user);
-    }
+            return this.tasksService.createTask(createTaskDto, user);
+        }
 
     @Delete('/:id')
     deleteTaskById(
         @Param('id', ParseIntPipe) taskId: number,
         @GetUser() user: User,
         ): Promise<{result: boolean}> {
-        return this.tasksService.deleteTaskById(taskId, user);
-    }
+            return this.tasksService.deleteTaskById(taskId, user);
+        }
 
 
     @Patch('/:id/status')
@@ -55,8 +69,8 @@ export class TasksController {
         @Body('status', TaskStatusValidationPipe) status: TaskStatus,
         @GetUser() user: User
         ): Promise<{result: boolean}> {
-        const updateStatus: UpdateStatus = {id, status};
-        return this.tasksService.updateTaskStatus(updateStatus, user);
-    }
+            const updateStatus: UpdateStatus = {id, status};
+            return this.tasksService.updateTaskStatus(updateStatus, user);
+        }
 
 }
