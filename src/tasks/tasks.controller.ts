@@ -21,7 +21,7 @@ import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
 import { Task } from './entities/task.entity';
 import { AuthGuard } from '@nestjs/passport';
 import { User } from './../auth/entities/user.entity';
-import { GetUser } from 'src/auth/decorators/get-user.decorator';
+import { GetUser } from '../auth/decorators/get-user.decorator';
 
 @Controller('tasks')
 @UseGuards(AuthGuard())
