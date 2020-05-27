@@ -1,6 +1,6 @@
 import { TaskStatus } from '../models/task-status.enum';
 
 export class UpdateStatus {
-    id: string;
+    id: number;
     status: TaskStatus;
 }

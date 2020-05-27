@@ -7,6 +7,8 @@ import { GetTasksFilter } from './dto/get-tasks-filter.dto';
 import { TaskStatusValidationPipe } from './pipes/task-status-validation.pipe';
 import { Task } from './entities/task.entity';
 import { AuthGuard } from '@nestjs/passport';
+import { User } from './../auth/entities/user.entity';
+import { GetUser } from 'src/auth/decorators/get-user.decorator';
 
 @Controller('tasks')
 @UseGuards(AuthGuard())
@@ -14,34 +16,47 @@ export class TasksController {
     constructor(private tasksService: TasksService) {}
 
     @Get()
-    getTasks(@Query(ValidationPipe) filterDto: GetTasksFilter): Promise<Array<Task>> {
-        return this.tasksService.getAllTasks(filterDto);
+    getTasks(
+        @Query(ValidationPipe) filterDto: GetTasksFilter,
+        @GetUser() user: User
+        ): Promise<Array<Task>> {
+        return this.tasksService.getAllTasks(filterDto, user);
     }
 
     @Get('/:id')
-    getTaskById(@Param('id', ParseIntPipe) taskId: number): Promise<Task> {
-        return this.tasksService.getTaskById(taskId);
+    getTaskById(
+        @Param('id', ParseIntPipe) taskId: number,
+        @GetUser() user: User
+        ): Promise<Task> {
+        return this.tasksService.getTaskById(taskId, user);
     }
 
     @Post()
     @UsePipes(ValidationPipe)
-    addNewTask(@Body() createTaskDto: CreateTaskDto): Promise<Task> {
-        return this.tasksService.createTask(createTaskDto);
+    addNewTask(
+        @Body() createTaskDto: CreateTaskDto,
+        @GetUser() user: User,
+        ): Promise<Task> {
+        return this.tasksService.createTask(createTaskDto, user);
     }
 
     @Delete('/:id')
-    deleteTaskById(@Param('id', ParseIntPipe) taskId: number): Promise<{result: boolean}> {
-        return this.tasksService.deleteTaskById(taskId);
+    deleteTaskById(
+        @Param('id', ParseIntPipe) taskId: number,
+        @GetUser() user: User,
+        ): Promise<{result: boolean}> {
+        return this.tasksService.deleteTaskById(taskId, user);
     }
 
 
     @Patch('/:id/status')
     updateTaskStatus(
-        @Param('id') id: string, 
-        @Body('status', TaskStatusValidationPipe) status: TaskStatus
+        @Param('id') id: number, 
+        @Body('status', TaskStatusValidationPipe) status: TaskStatus,
+        @GetUser() user: User
         ): Promise<{result: boolean}> {
         const updateStatus: UpdateStatus = {id, status};
-        return this.tasksService.updateTaskStatus(updateStatus)
+        return this.tasksService.updateTaskStatus(updateStatus, user);
     }
 
 }
