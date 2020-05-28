@@ -43,7 +43,6 @@ export class TasksService {
     async updateTaskStatus(updateStatus: UpdateStatus, user: User): Promise<{result: boolean}> {
         const {id, status} = updateStatus;
         const task = await this.getTaskById(id, user);
-        if(!task) return { result: false }
         task.status = status;
         task.save();
         return { result: true }
