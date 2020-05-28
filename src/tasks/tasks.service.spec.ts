@@ -111,26 +111,19 @@ describe('TasksService', () => {
       status: TaskStatus.IN_PROGRESS
     };
 
-    const mockOldStatus = { 
-      title: 'Task title', 
-      description: 'Task description',
-      status: TaskStatus.OPEN,
-      save: jest.fn()
-    };
-
     it('task status successfully updated', async () => {
-      taskRepository.findOne = jest.fn().mockResolvedValue(null);
-      expect(taskRepository.findOne).not.toHaveBeenCalled();
-      expect(service.updateTaskStatus(mockNewStatus, mockUser)).rejects.toThrow(NotFoundException);
-      expect(taskRepository.findOne).toHaveBeenCalledWith({where: {id: mockNewStatus.id, userId: mockUser.id}});
-    });
+      const save = jest.fn().mockResolvedValue(true);
+      service.getTaskById = jest.fn().mockResolvedValue({
+        status: TaskStatus.OPEN,
+        save
+      });
 
-    it('throw error when task not fount', async () => {
-      taskRepository.findOne = jest.fn().mockResolvedValue(mockOldStatus);
-      expect(taskRepository.findOne).not.toHaveBeenCalled();
-
-      expect(service.updateTaskStatus(mockNewStatus, mockUser)).resolves.toEqual({result: true});
-      expect(taskRepository.findOne).toHaveBeenCalledWith({where: {id: mockNewStatus.id, userId: mockUser.id}});
+      expect(service.getTaskById).not.toHaveBeenCalled();
+      expect(save).not.toHaveBeenCalled();
+      const res = await service.updateTaskStatus(mockNewStatus, mockUser);
+      expect(res).toEqual({result: true});
+      expect(service.getTaskById).toHaveBeenCalledWith(mockNewStatus.id, mockUser);
+      expect(save).toHaveBeenCalled();
     });
 
   });
